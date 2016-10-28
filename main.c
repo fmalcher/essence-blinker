@@ -1,62 +1,106 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-uint8_t outL = PB0;
-uint8_t outM = PB1;
-uint8_t outR = PB2;
-
-uint8_t inL = PB3;
-uint8_t inR = PB4;
-
-int const blinkDelay = 50; // blinker speed
+int const blinkDelay = 400; // blinker speed
 
 /**************************/
 
 uint8_t leftOn = 0;
 uint8_t rightOn = 0;
+uint8_t hazardOn = 0;
 
-int main(void) {    
-    DDRB |= (1 << outL);
-    DDRB |= (1 << outM);
-    DDRB |= (1 << outR);
+int main(void) {
+    // outputs    
+    DDRA |= (1 << PA0);
+    DDRA |= (1 << PA1);
+    DDRA |= (1 << PA2);
+    DDRA |= (1 << PA4);
+    DDRA |= (1 << PA5);
+    DDRA |= (1 << PA6);
+    DDRA |= (1 << PA7);
 
-    DDRB &= ~(1 << inL);
-    PORTB |= (1 << inL); // pull-up
-    DDRB &= ~(1 << inR);
-    PORTB |= (1 << inR); // pull-up
+    // inputs
+    DDRB &= ~(1 << PB4);
+    PORTB |= (1 << PB4); // pull-up
+    DDRB &= ~(1 << PB5);
+    PORTB |= (1 << PB5); // pull-up
+    DDRB &= ~(1 << PB6);
+    PORTB |= (1 << PB6); // pull-up
 
-    // middle on
-    PORTB |= (1 << outM);
+    onM();
+    offBlinker();
 
     while(1){
-        if(!(PINB & (1 << inL))) {
-            if(!leftOn) blinkerOff();
-            leftOn = 1;
+        if(!(PINB & (1 << PB6))) {
+            if(!hazardOn) offBlinker();
+            leftOn = 0;
             rightOn = 0;
-            blink(outL);
-        } else if(!(PINB & (1 << inR))) {
-            if(!rightOn) blinkerOff();
+            hazardOn = 1;
+            toggleH();
+            _delay_ms(blinkDelay);
+            continue;
+
+        } else if(!(PINB & (1 << PB5))) {
+            if(!rightOn) offBlinker();
             leftOn = 0;
             rightOn = 1;
-            blink(outR);
+            hazardOn = 0;
+            toggleR();
+            _delay_ms(blinkDelay);
+
+        } else if(!(PINB & (1 << PB4))) {
+            if(!leftOn) offBlinker();
+            leftOn = 1;
+            rightOn = 0;
+            hazardOn = 0;            
+            toggleL();
+            _delay_ms(blinkDelay);
+
         } else {
-            blinkerOff();
+            offBlinker();
+            _delay_ms(50);
         }
     }
 
     return 0;
 }
 
-// toggles pin and thus, processes a half blink cycle
-void blink(uint8_t pin) {
-    PORTB ^= (1 << pin);
-    _delay_ms(blinkDelay);
-}
+
 
 // both blinkers off
-void blinkerOff() {
-    PORTB &= ~(1 << outL);
-    PORTB &= ~(1 << outR);
+void offBlinker() {
+    PORTA &= ~(1 << PA0);
+    PORTA &= ~(1 << PA2);
+    PORTA &= ~(1 << PA4);
+    PORTA &= ~(1 << PA6);
+    PORTA &= ~(1 << PA7);
+
     leftOn = 0;
     rightOn = 0;
+    hazardOn = 0;
 }
+
+void onM() {
+    PORTA |= (1 << PA1);
+    PORTA |= (1 << PA5);
+}
+
+void toggleL() {
+    PORTA ^= (1 << PA0);
+    PORTA ^= (1 << PA4);
+}
+
+void toggleR() {
+    PORTA ^= (1 << PA2);
+    PORTA ^= (1 << PA6);
+}
+
+void toggleH() {
+    PORTA ^= (1 << PA7);
+    PORTA ^= (1 << PA2);
+    PORTA ^= (1 << PA0);
+    
+}
+
+
+

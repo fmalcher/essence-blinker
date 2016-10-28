@@ -17,11 +17,11 @@
 #                   default_serial = "avrdoper"
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
-DEVICE     = attiny13 
-CLOCK      = 9600000
+DEVICE     = attiny261 
+CLOCK      = 8000000
 PROGRAMMER = -c USBasp
 OBJECTS    = main.o
-FUSES      = -U lfuse:w:0x6a:m -U hfuse:w:0xff:m
+FUSES      = -U lfuse:w:0x62:m -U hfuse:w:0xdf:m
 
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
 # Example for 8 MHz internal oscillator
